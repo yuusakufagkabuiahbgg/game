@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>思い出しカード - 脳トレゲーム</title>
+  
+  <!-- React と ReactDOM のライブラリを読み込み -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.20/babel.min.js"></script>
+  
+  <!-- Lucide Iconsのためのライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+  
+  <style>
+    /* カードのflip効果用スタイル */
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+    
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      background-color: #fffbeb;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Lucide アイコンをReactコンポーネントとして使用するための設定
+    const { RotateCcw, Settings, HelpCircle } = window.lucide;
+    
+    // React Hooksをimport
+    const { useState, useEffect } = React;
+    
+    // カードに表示する季節のアイテム
+    const seasonalItems = [
+      { name: '桜', emoji: '🌸' },
+      { name: '紅葉', emoji: '🍁' },
+      { name: '雪だるま', emoji: '⛄' },
+      { name: '金魚', emoji: '🐠' },
+      { name: '西瓜', emoji: '🍉' },
+      { name: '月', emoji: '🌕' },
+      { name: '花火', emoji: '🎆' },
+      { name: '栗', emoji: '🌰' },
+      { name: '梅', emoji: '🌼' },
+      { name: '風鈴', emoji: '🔔' },
+      { name: '傘', emoji: '☂️' },
+      { name: '団扇', emoji: '🪭' },
+    ];
+    
+    // メインコンポーネント
+    function MemoryCardGame() {
+      // 難易度設定 (簡単: 3x2, 普通: 4x3, 難しい: 4x4)
+      const difficulties = {
+        easy: { rows: 2, cols: 3, name: '簡単' },
+        medium: { rows: 3, cols: 4, name: '普通' },
+        hard: { rows: 4, cols: 4, name: '挑戦' }
+      };
+      
+      const [difficulty, setDifficulty] = useState('easy');
+      const [cards, setCards] = useState([]);
+      const [flippedIndices, setFlippedIndices] = useState([]);
+      const [matchedPairs, setMatchedPairs] = useState([]);
+      const [moves, setMoves] = useState(0);
+      const [gameStarted, setGameStarted] = useState(false);
+      const [gameCompleted, setGameCompleted] = useState(false);
+      const [showSettings, setShowSettings] = useState(false);
+      
+      // 難易度に応じてカードを準備
+      const initializeGame = () => {
+        const { rows, cols } = difficulties[difficulty];
+        const totalCards = rows * cols;
+        const pairsNeeded = totalCards / 2;
+        
+        // 必要なペア数だけアイテムを選ぶ
+        const selectedItems = [...seasonalItems]
+          .sort(() => 0.5 - Math.random())
+          .slice(0, pairsNeeded);
+        
+        // 各アイテムを2枚ずつ作成してシャッフル
+        let newCards = [];
+        selectedItems.forEach((item, index) => {
+          newCards.push({ ...item, id: index + 'a' });
+          newCards.push({ ...item, id: index + 'b' });
+        });
+        
+        // カードをシャッフル
+        newCards = newCards.sort(() => 0.5 - Math.random());
+        
+        setCards(newCards);
+        setFlippedIndices([]);
+        setMatchedPairs([]);
+        setMoves(0);
+        setGameCompleted(false);
+        setGameStarted(true);
+      };
+      
+      // カードをクリックした時の処理
+      const handleCardClick = (index) => {
+        // すでにめくられているか、マッチしている場合は何もしない
+        if (
+          flippedIndices.includes(index) || 
+          matchedPairs.includes(cards[index].name) ||
+          flippedIndices.length >= 2
+        ) {
+          return;
+        }
+        
+        // カードをめくる
+        const newFlippedIndices = [...flippedIndices, index];
+        setFlippedIndices(newFlippedIndices);
+        
+        // 2枚めくったら照合
+        if (newFlippedIndices.length === 2) {
+          setMoves(moves + 1);
+          
+          const [firstIndex, secondIndex] = newFlippedIndices;
+          const firstCard = cards[firstIndex];
+          const secondCard = cards[secondIndex];
+          
+          if (firstCard.name === secondCard.name) {
+            // マッチした場合
+            setMatchedPairs([...matchedPairs, firstCard.name]);
+            setFlippedIndices([]);
+          } else {
+            // マッチしなかった場合、少し待ってからカードを裏返す
+            setTimeout(() => {
+              setFlippedIndices([]);
+            }, 800);
+          }
+        }
+      };
+      
+      // ゲーム完了判定
+      useEffect(() => {
+        if (gameStarted && matchedPairs.length > 0) {
+          const { rows, cols } = difficulties[difficulty];
+          const totalPairs = (rows * cols) / 2;
+          
+          if (matchedPairs.length === totalPairs) {
+            setGameCompleted(true);
+          }
+        }
+      }, [matchedPairs, difficulty, gameStarted]);
+      
+      // 初回レンダリング時に簡単モードでゲームを開始
+      useEffect(() => {
+        initializeGame();
+      }, [difficulty]);
+      
+      const getGridTemplateStyle = () => {
+        const { rows, cols } = difficulties[difficulty];
+        return {
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridTemplateRows: `repeat(${rows}, 1fr)`
+        };
+      };
+      
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-amber-50 p-4 font-sans">
+          {/* タイトルとコントロール */}
+          <div className="w-full max-w-md mb-4 flex flex-col items-center">
+            <h1 className="text-3xl font-bold text-amber-800 mb-2">思い出しカード</h1>
+            <div className="text-lg text-amber-700 mb-4">脳トレメモリーゲーム</div>
+            
+            <div className="flex gap-3 mb-4">
+              <button 
+                onClick={() => initializeGame()} 
+                className="bg-amber-200 hover:bg-amber-300 text-amber-800 px-4 py-2 rounded-lg flex items-center gap-1 shadow-md"
+              >
+                <RotateCcw size={18} />
+                <span>新しいゲーム</span>
+              </button>
+              
+              <button 
+                onClick={() => setShowSettings(!showSettings)} 
+                className="bg-amber-200 hover:bg-amber-300 text-amber-800 px-4 py-2 rounded-lg flex items-center gap-1 shadow-md"
+              >
+                <Settings size={18} />
+                <span>難易度</span>
+              </button>
+            </div>
+            
+            {/* 難易度設定 */}
+            {showSettings && (
+              <div className="bg-amber-100 p-4 rounded-lg mb-4 w-full shadow-md">
+                <h2 className="text-xl font-bold text-amber-800 mb-2">難易度設定</h2>
+                <div className="flex gap-2">
+                  {Object.keys(difficulties).map(diff => (
+                    <button
+                      key={diff}
+                      onClick={() => setDifficulty(diff)}
+                      className={`px-4 py-2 rounded-lg ${
+                        difficulty === diff 
+                          ? 'bg-amber-500 text-white' 
+                          : 'bg-amber-200 text-amber-800 hover:bg-amber-300'
+                      }`}
+                    >
+                      {difficulties[diff].name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* ヘルプ（常に表示） */}
+            <div className="bg-amber-100 p-4 rounded-lg mb-4 w-full shadow-md">
+              <h2 className="text-xl font-bold text-amber-800 mb-2">遊び方</h2>
+              <ul className="list-disc pl-5 text-amber-800">
+                <li>カードをめくって、同じ絵柄のペアを見つけましょう</li>
+                <li>一度に2枚だけめくることができます</li>
+                <li>すべてのペアを見つけたらゲームクリアです</li>
+                <li>少ない手数でクリアを目指しましょう</li>
+              </ul>
+            </div>
+            
+            {/* ゲーム情報 */}
+            <div className="w-full flex justify-between mb-2 text-amber-800">
+              <div>難易度: {difficulties[difficulty].name}</div>
+              <div>めくった回数: {moves}</div>
+            </div>
+          </div>
+          
+          {/* ゲーム完了メッセージ */}
+          {gameCompleted && (
+            <div className="bg-amber-100 p-6 rounded-lg mb-4 text-center shadow-lg border-2 border-amber-300">
+              <h2 className="text-2xl font-bold text-amber-800 mb-2">おめでとうございます！</h2>
+              <p className="text-amber-700 mb-3">すべてのカードを {moves} 回の試行でマッチさせました！</p>
+              <button 
+                onClick={() => initializeGame()} 
+                className="bg-amber-400 hover:bg-amber-500 text-white px-6 py-2 rounded-lg"
+              >
+                もう一度遊ぶ
+              </button>
+            </div>
+          )}
+          
+          {/* カードグリッド */}
+          <div 
+            className="grid gap-3 w-full max-w-md"
+            style={getGridTemplateStyle()}
+          >
+            {cards.map((card, index) => (
+              <div
+                key={card.id}
+                onClick={() => handleCardClick(index)}
+                className={`
+                  aspect-square flex items-center justify-center rounded-lg cursor-pointer text-4xl
+                  transition-all duration-300 transform
+                  ${
+                    flippedIndices.includes(index) || matchedPairs.includes(card.name)
+                      ? 'bg-white shadow-md rotate-0'
+                      : 'bg-gradient-to-br from-amber-300 to-amber-500 shadow-lg hover:shadow rotate-y-180'
+                  }
+                `}
+              >
+                {(flippedIndices.includes(index) || matchedPairs.includes(card.name)) ? (
+                  <div className="flex flex-col items-center">
+                    <span className="text-5xl mb-1">{card.emoji}</span>
+                    <span className="text-base text-amber-800">{card.name}</span>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    // Reactコンポーネントをレンダリング
+    ReactDOM.render(<MemoryCardGame />, document.getElementById('root'));
+  </script>
+</body>
+</html>
