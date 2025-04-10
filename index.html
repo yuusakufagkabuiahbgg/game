@@ -4,40 +4,288 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>思い出しカード - 脳トレゲーム</title>
-  
-  <!-- React と ReactDOM のライブラリを読み込み -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.20/babel.min.js"></script>
-  
-  <!-- Lucide Iconsのためのライブラリ -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
-  
   <style>
-    /* カードのflip効果用スタイル */
-    .rotate-y-180 {
-      transform: rotateY(180deg);
-    }
-    
+    /* 全体のスタイル */
     body {
       font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
       background-color: #fffbeb;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* コンテナ */
+    .container {
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* タイトル */
+    h1 {
+      color: #92400e;
+      font-size: 28px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #92400e;
+      font-size: 18px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    /* ボタン */
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      background-color: #fde68a;
+      color: #92400e;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    button:hover {
+      background-color: #fcd34d;
+    }
+
+    /* 難易度設定 */
+    .settings {
+      background-color: #fef3c7;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .settings h2 {
+      color: #92400e;
+      font-size: 20px;
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .difficulty-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .difficulty-button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .difficulty-button.active {
+      background-color: #f59e0b;
+      color: white;
+    }
+
+    /* ヘルプ */
+    .help {
+      background-color: #fef3c7;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .help h2 {
+      color: #92400e;
+      font-size: 20px;
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .help ul {
+      color: #92400e;
+      margin: 0;
+      padding-left: 24px;
+    }
+
+    .help li {
+      margin-bottom: 4px;
+    }
+
+    /* ゲーム情報 */
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      color: #92400e;
+      margin-bottom: 16px;
+    }
+
+    /* 完了メッセージ */
+    .game-complete {
+      background-color: #fef3c7;
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+      text-align: center;
+      border: 2px solid #fcd34d;
+    }
+
+    .game-complete h2 {
+      color: #92400e;
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .game-complete p {
+      color: #92400e;
+      margin-bottom: 16px;
+    }
+
+    .game-complete button {
+      background-color: #f59e0b;
+      color: white;
+      padding: 8px 24px;
+    }
+
+    .game-complete button:hover {
+      background-color: #d97706;
+    }
+
+    /* カードグリッド */
+    .card-grid {
+      display: grid;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .card {
+      aspect-ratio: 1;
+      background: linear-gradient(to bottom right, #fcd34d, #f59e0b);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, background-color 0.3s;
+      transform: rotateY(180deg);
+    }
+
+    .card:hover {
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card.flipped {
+      transform: rotateY(0);
+      background-color: white;
+      background-image: none;
+    }
+
+    .card-content {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .card.flipped .card-content {
+      display: flex;
+    }
+
+    .emoji {
+      font-size: 40px;
+      margin-bottom: 4px;
+    }
+
+    .card-name {
+      font-size: 14px;
+      color: #92400e;
+    }
+
+    /* アイコン */
+    .icon {
+      width: 18px;
+      height: 18px;
     }
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div class="container">
+    <h1>思い出しカード</h1>
+    <div class="subtitle">脳トレメモリーゲーム</div>
+    
+    <div class="button-group">
+      <button id="new-game-btn">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+        新しいゲーム
+      </button>
+      
+      <button id="settings-btn">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        難易度
+      </button>
+    </div>
+    
+    <div id="settings-panel" class="settings" style="display: none;">
+      <h2>難易度設定</h2>
+      <div class="difficulty-buttons">
+        <button class="difficulty-button active" data-difficulty="easy">簡単</button>
+        <button class="difficulty-button" data-difficulty="medium">普通</button>
+        <button class="difficulty-button" data-difficulty="hard">挑戦</button>
+      </div>
+    </div>
+    
+    <div class="help">
+      <h2>遊び方</h2>
+      <ul>
+        <li>カードをめくって、同じ絵柄のペアを見つけましょう</li>
+        <li>一度に2枚だけめくることができます</li>
+        <li>すべてのペアを見つけたらゲームクリアです</li>
+        <li>少ない手数でクリアを目指しましょう</li>
+      </ul>
+    </div>
+    
+    <div class="game-info">
+      <div id="difficulty-display">難易度: 簡単</div>
+      <div id="moves-display">めくった回数: 0</div>
+    </div>
+    
+    <div id="game-complete" class="game-complete" style="display: none;">
+      <h2>おめでとうございます！</h2>
+      <p id="complete-message">すべてのカードを 0 回の試行でマッチさせました！</p>
+      <button id="play-again-btn">もう一度遊ぶ</button>
+    </div>
+    
+    <div id="card-grid" class="card-grid"></div>
+  </div>
 
-  <script type="text/babel">
-    // Lucide アイコンをReactコンポーネントとして使用するための設定
-    const { RotateCcw, Settings, HelpCircle } = window.lucide;
-    
-    // React Hooksをimport
-    const { useState, useEffect } = React;
-    
+  <script>
     // カードに表示する季節のアイテム
     const seasonalItems = [
       { name: '桜', emoji: '🌸' },
@@ -53,228 +301,191 @@
       { name: '傘', emoji: '☂️' },
       { name: '団扇', emoji: '🪭' },
     ];
-    
-    // メインコンポーネント
-    function MemoryCardGame() {
-      // 難易度設定 (簡単: 3x2, 普通: 4x3, 難しい: 4x4)
-      const difficulties = {
-        easy: { rows: 2, cols: 3, name: '簡単' },
-        medium: { rows: 3, cols: 4, name: '普通' },
-        hard: { rows: 4, cols: 4, name: '挑戦' }
-      };
-      
-      const [difficulty, setDifficulty] = useState('easy');
-      const [cards, setCards] = useState([]);
-      const [flippedIndices, setFlippedIndices] = useState([]);
-      const [matchedPairs, setMatchedPairs] = useState([]);
-      const [moves, setMoves] = useState(0);
-      const [gameStarted, setGameStarted] = useState(false);
-      const [gameCompleted, setGameCompleted] = useState(false);
-      const [showSettings, setShowSettings] = useState(false);
-      
-      // 難易度に応じてカードを準備
-      const initializeGame = () => {
-        const { rows, cols } = difficulties[difficulty];
-        const totalCards = rows * cols;
-        const pairsNeeded = totalCards / 2;
+
+    // 難易度設定
+    const difficulties = {
+      easy: { rows: 2, cols: 3, name: '簡単' },
+      medium: { rows: 3, cols: 4, name: '普通' },
+      hard: { rows: 4, cols: 4, name: '挑戦' }
+    };
+
+    // ゲーム状態
+    let currentDifficulty = 'easy';
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = [];
+    let moves = 0;
+    let isLocked = false;
+
+    // DOM要素
+    const cardGrid = document.getElementById('card-grid');
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsPanel = document.getElementById('settings-panel');
+    const difficultyButtons = document.querySelectorAll('.difficulty-button');
+    const newGameBtn = document.getElementById('new-game-btn');
+    const difficultyDisplay = document.getElementById('difficulty-display');
+    const movesDisplay = document.getElementById('moves-display');
+    const gameCompletePanel = document.getElementById('game-complete');
+    const completeMessage = document.getElementById('complete-message');
+    const playAgainBtn = document.getElementById('play-again-btn');
+
+    // 難易度ボタンのイベントリスナー
+    difficultyButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const difficulty = button.dataset.difficulty;
+        setDifficulty(difficulty);
         
-        // 必要なペア数だけアイテムを選ぶ
-        const selectedItems = [...seasonalItems]
-          .sort(() => 0.5 - Math.random())
-          .slice(0, pairsNeeded);
-        
-        // 各アイテムを2枚ずつ作成してシャッフル
-        let newCards = [];
-        selectedItems.forEach((item, index) => {
-          newCards.push({ ...item, id: index + 'a' });
-          newCards.push({ ...item, id: index + 'b' });
+        // アクティブな難易度ボタンを更新
+        difficultyButtons.forEach(btn => {
+          btn.classList.remove('active');
         });
-        
-        // カードをシャッフル
-        newCards = newCards.sort(() => 0.5 - Math.random());
-        
-        setCards(newCards);
-        setFlippedIndices([]);
-        setMatchedPairs([]);
-        setMoves(0);
-        setGameCompleted(false);
-        setGameStarted(true);
-      };
-      
-      // カードをクリックした時の処理
-      const handleCardClick = (index) => {
-        // すでにめくられているか、マッチしている場合は何もしない
-        if (
-          flippedIndices.includes(index) || 
-          matchedPairs.includes(cards[index].name) ||
-          flippedIndices.length >= 2
-        ) {
-          return;
-        }
-        
-        // カードをめくる
-        const newFlippedIndices = [...flippedIndices, index];
-        setFlippedIndices(newFlippedIndices);
-        
-        // 2枚めくったら照合
-        if (newFlippedIndices.length === 2) {
-          setMoves(moves + 1);
-          
-          const [firstIndex, secondIndex] = newFlippedIndices;
-          const firstCard = cards[firstIndex];
-          const secondCard = cards[secondIndex];
-          
-          if (firstCard.name === secondCard.name) {
-            // マッチした場合
-            setMatchedPairs([...matchedPairs, firstCard.name]);
-            setFlippedIndices([]);
-          } else {
-            // マッチしなかった場合、少し待ってからカードを裏返す
-            setTimeout(() => {
-              setFlippedIndices([]);
-            }, 800);
-          }
-        }
-      };
-      
-      // ゲーム完了判定
-      useEffect(() => {
-        if (gameStarted && matchedPairs.length > 0) {
-          const { rows, cols } = difficulties[difficulty];
-          const totalPairs = (rows * cols) / 2;
-          
-          if (matchedPairs.length === totalPairs) {
-            setGameCompleted(true);
-          }
-        }
-      }, [matchedPairs, difficulty, gameStarted]);
-      
-      // 初回レンダリング時に簡単モードでゲームを開始
-      useEffect(() => {
-        initializeGame();
-      }, [difficulty]);
-      
-      const getGridTemplateStyle = () => {
-        const { rows, cols } = difficulties[difficulty];
-        return {
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gridTemplateRows: `repeat(${rows}, 1fr)`
-        };
-      };
-      
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-amber-50 p-4 font-sans">
-          {/* タイトルとコントロール */}
-          <div className="w-full max-w-md mb-4 flex flex-col items-center">
-            <h1 className="text-3xl font-bold text-amber-800 mb-2">思い出しカード</h1>
-            <div className="text-lg text-amber-700 mb-4">脳トレメモリーゲーム</div>
-            
-            <div className="flex gap-3 mb-4">
-              <button 
-                onClick={() => initializeGame()} 
-                className="bg-amber-200 hover:bg-amber-300 text-amber-800 px-4 py-2 rounded-lg flex items-center gap-1 shadow-md"
-              >
-                <RotateCcw size={18} />
-                <span>新しいゲーム</span>
-              </button>
-              
-              <button 
-                onClick={() => setShowSettings(!showSettings)} 
-                className="bg-amber-200 hover:bg-amber-300 text-amber-800 px-4 py-2 rounded-lg flex items-center gap-1 shadow-md"
-              >
-                <Settings size={18} />
-                <span>難易度</span>
-              </button>
-            </div>
-            
-            {/* 難易度設定 */}
-            {showSettings && (
-              <div className="bg-amber-100 p-4 rounded-lg mb-4 w-full shadow-md">
-                <h2 className="text-xl font-bold text-amber-800 mb-2">難易度設定</h2>
-                <div className="flex gap-2">
-                  {Object.keys(difficulties).map(diff => (
-                    <button
-                      key={diff}
-                      onClick={() => setDifficulty(diff)}
-                      className={`px-4 py-2 rounded-lg ${
-                        difficulty === diff 
-                          ? 'bg-amber-500 text-white' 
-                          : 'bg-amber-200 text-amber-800 hover:bg-amber-300'
-                      }`}
-                    >
-                      {difficulties[diff].name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* ヘルプ（常に表示） */}
-            <div className="bg-amber-100 p-4 rounded-lg mb-4 w-full shadow-md">
-              <h2 className="text-xl font-bold text-amber-800 mb-2">遊び方</h2>
-              <ul className="list-disc pl-5 text-amber-800">
-                <li>カードをめくって、同じ絵柄のペアを見つけましょう</li>
-                <li>一度に2枚だけめくることができます</li>
-                <li>すべてのペアを見つけたらゲームクリアです</li>
-                <li>少ない手数でクリアを目指しましょう</li>
-              </ul>
-            </div>
-            
-            {/* ゲーム情報 */}
-            <div className="w-full flex justify-between mb-2 text-amber-800">
-              <div>難易度: {difficulties[difficulty].name}</div>
-              <div>めくった回数: {moves}</div>
-            </div>
-          </div>
-          
-          {/* ゲーム完了メッセージ */}
-          {gameCompleted && (
-            <div className="bg-amber-100 p-6 rounded-lg mb-4 text-center shadow-lg border-2 border-amber-300">
-              <h2 className="text-2xl font-bold text-amber-800 mb-2">おめでとうございます！</h2>
-              <p className="text-amber-700 mb-3">すべてのカードを {moves} 回の試行でマッチさせました！</p>
-              <button 
-                onClick={() => initializeGame()} 
-                className="bg-amber-400 hover:bg-amber-500 text-white px-6 py-2 rounded-lg"
-              >
-                もう一度遊ぶ
-              </button>
-            </div>
-          )}
-          
-          {/* カードグリッド */}
-          <div 
-            className="grid gap-3 w-full max-w-md"
-            style={getGridTemplateStyle()}
-          >
-            {cards.map((card, index) => (
-              <div
-                key={card.id}
-                onClick={() => handleCardClick(index)}
-                className={`
-                  aspect-square flex items-center justify-center rounded-lg cursor-pointer text-4xl
-                  transition-all duration-300 transform
-                  ${
-                    flippedIndices.includes(index) || matchedPairs.includes(card.name)
-                      ? 'bg-white shadow-md rotate-0'
-                      : 'bg-gradient-to-br from-amber-300 to-amber-500 shadow-lg hover:shadow rotate-y-180'
-                  }
-                `}
-              >
-                {(flippedIndices.includes(index) || matchedPairs.includes(card.name)) ? (
-                  <div className="flex flex-col items-center">
-                    <span className="text-5xl mb-1">{card.emoji}</span>
-                    <span className="text-base text-amber-800">{card.name}</span>
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
+        button.classList.add('active');
+      });
+    });
+
+    // 難易度を設定する
+    function setDifficulty(difficulty) {
+      currentDifficulty = difficulty;
+      difficultyDisplay.textContent = `難易度: ${difficulties[difficulty].name}`;
+      initializeGame();
     }
-    
-    // Reactコンポーネントをレンダリング
-    ReactDOM.render(<MemoryCardGame />, document.getElementById('root'));
+
+    // 設定パネル表示切替
+    settingsBtn.addEventListener('click', () => {
+      settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // 新しいゲームの開始
+    newGameBtn.addEventListener('click', initializeGame);
+    playAgainBtn.addEventListener('click', initializeGame);
+
+    // ゲームの初期化
+    function initializeGame() {
+      // カードグリッドをクリア
+      cardGrid.innerHTML = '';
+      
+      // ゲーム状態のリセット
+      flippedCards = [];
+      matchedPairs = [];
+      moves = 0;
+      isLocked = false;
+      
+      // 完了パネルを非表示
+      gameCompletePanel.style.display = 'none';
+      
+      // 手数の表示をリセット
+      updateMovesDisplay();
+      
+      // 難易度に応じたグリッドスタイルを設定
+      const { rows, cols } = difficulties[currentDifficulty];
+      cardGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      cardGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      
+      // 必要なカードペアを準備
+      const totalCards = rows * cols;
+      const pairsNeeded = totalCards / 2;
+      
+      // アイテムをシャッフルして必要な数だけ取得
+      const shuffledItems = [...seasonalItems]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, pairsNeeded);
+      
+      // 各アイテムを2枚ずつ作成してシャッフル
+      cards = [];
+      shuffledItems.forEach((item, index) => {
+        cards.push({ ...item, id: index + 'a' });
+        cards.push({ ...item, id: index + 'b' });
+      });
+      
+      // カードをシャッフル
+      cards = cards.sort(() => Math.random() - 0.5);
+      
+      // カードをDOM要素として作成
+      cards.forEach((card, index) => {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'card';
+        cardElement.innerHTML = `
+          <div class="card-content">
+            <div class="emoji">${card.emoji}</div>
+            <div class="card-name">${card.name}</div>
+          </div>
+        `;
+        
+        // カードクリックイベント
+        cardElement.addEventListener('click', () => handleCardClick(index, cardElement));
+        
+        // カードグリッドに追加
+        cardGrid.appendChild(cardElement);
+      });
+    }
+
+    // カードクリック処理
+    function handleCardClick(index, cardElement) {
+      // ロック中、既にめくられている、既にマッチしている場合は何もしない
+      if (
+        isLocked || 
+        flippedCards.includes(index) || 
+        matchedPairs.includes(cards[index].name) ||
+        flippedCards.length >= 2
+      ) {
+        return;
+      }
+      
+      // カードをめくる
+      cardElement.classList.add('flipped');
+      flippedCards.push(index);
+      
+      // 2枚めくったらマッチングを確認
+      if (flippedCards.length === 2) {
+        moves++;
+        updateMovesDisplay();
+        
+        const [firstIndex, secondIndex] = flippedCards;
+        const firstCard = cards[firstIndex];
+        const secondCard = cards[secondIndex];
+        
+        if (firstCard.name === secondCard.name) {
+          // マッチした場合
+          matchedPairs.push(firstCard.name);
+          flippedCards = [];
+          
+          // すべてのペアがマッチしたかチェック
+          checkGameComplete();
+        } else {
+          // マッチしなかった場合は少し待ってから裏返す
+          isLocked = true;
+          setTimeout(() => {
+            const cardElements = document.querySelectorAll('.card');
+            cardElements[firstIndex].classList.remove('flipped');
+            cardElements[secondIndex].classList.remove('flipped');
+            flippedCards = [];
+            isLocked = false;
+          }, 800);
+        }
+      }
+    }
+
+    // めくった回数の表示を更新
+    function updateMovesDisplay() {
+      movesDisplay.textContent = `めくった回数: ${moves}`;
+    }
+
+    // ゲーム完了チェック
+    function checkGameComplete() {
+      const { rows, cols } = difficulties[currentDifficulty];
+      const totalPairs = (rows * cols) / 2;
+      
+      if (matchedPairs.length === totalPairs) {
+        // ゲーム完了時の処理
+        setTimeout(() => {
+          completeMessage.textContent = `すべてのカードを ${moves} 回の試行でマッチさせました！`;
+          gameCompletePanel.style.display = 'block';
+        }, 500);
+      }
+    }
+
+    // 初期ゲームの開始
+    initializeGame();
   </script>
 </body>
 </html>
